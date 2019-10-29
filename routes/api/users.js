@@ -12,7 +12,6 @@ const User = require('../../models/users')
 //@desc 返回请求的json数据
 //@access public 
 router.get('/test',(req,res)=>{
-  console.log(1)
   res.json({mes:"login"})
 })
 
@@ -26,9 +25,12 @@ router.post('/register',(req,res,next) => {
   // console.log(req.body.email)
   User.findOne({email:req.body.email})
   .then((user) => {
-    console.log(user)
     if(user) {
-      return res.status(400).json('邮箱已被注册hhhh')
+      return res.json(
+      {
+        mes:'邮箱已被注册hhhh',
+        status:300,
+      })
     }else {
       const avatar = gravatar.url(req.body.email,{s:'200',r:'pg',d:'mm'})
 
@@ -63,7 +65,10 @@ router.post('/login',(req,res)=>{
     .then((user) => {
       // console.log(user)
       if(!user) {
-        return res.status(400).json('用户不存在')
+        return res.status(400).json({
+          mes:'用户不存在',
+          status:300,
+        })
       }
       bcrypt.compare(password, user.password)
         .then((isMatch) => {
@@ -72,13 +77,17 @@ router.post('/login',(req,res)=>{
             jwt.sign(rule,keys.secretOrKey,{expiresIn:3600},(err,token) => {
               if(err) throw err
               res.json({
-                success:true,
+                mes:'登录成功',
+                status:200,
                 token:"Bearer " +token
               })
             })
             // return res.json({msg:"success"})
           }else {
-            return res.status(400).json("密码不正确")
+            return res.json({
+              mes:'密码错误',
+              status:300,
+            })
           }
         })
 
@@ -90,7 +99,6 @@ router.post('/login',(req,res)=>{
 //@desc 返回 return current user
 //@access private
 router.get('/current',passport.authenticate('jwt',{session:false}),(req,res) => {
-  console.log(req.user)
   res.json({
     id:req.user.id,
     name:req.user.name,
